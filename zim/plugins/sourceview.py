@@ -4,6 +4,7 @@
 # Copyright 2014-2018 Jaap Karssenberg <jaap.karssenberg@gmail.com>
 
 import logging
+import os
 
 logger = logging.getLogger('zim.plugins.sourceview')
 
@@ -311,10 +312,14 @@ class SourceViewWidget(TextViewWidget):
 
 
 	def clicked_on_run(self, button):
-		logging.debug('Run this man in ' + self.buffer.get_language())
+		lang = self.buffer.get_language()
+		logging.debug('Run this man in ' + lang)
 		self.label.set_label('Run')
-		logging.debug(self.buffer.get_text(self.buffer.get_start_iter(),
-			self.buffer.get_end_iter(), False))
+		command = self.buffer.get_text(self.buffer.get_start_iter(),
+			self.buffer.get_end_iter(), False)
+		logging.debug(command)
+		ip = Interpreter(lang)
+		ip.run(command)
 
 
 	def set_preferences(self, preferences):
@@ -460,3 +465,27 @@ class InsertCodeBlockDialog(Dialog):
 			return True
 		else:
 			return False # no syntax selected
+
+class Interpreter:
+	# TO-DOs:
+	# Only for bash / sh
+	# Also fields that end with emtpy lines
+	# More configuration of execution control
+	# Log to Logfiles
+
+	def __init__(self, lang):
+		assert lang == 'sh'
+		#shell == 'mate-terminal':
+		self.shell_prefix = \
+		"""mate-terminal --hide-menubar -x /bin/bash -c '"""
+		self.shell_suffix = \
+		""";echo "Press the Any-Key to Continue "; read; echo "Extra sleep 5s"; sleep 5' &"""
+
+	def run(self, cmd):
+		if cmd.count("'") > 0:
+			logging.error("Error the command String contains a ' character, this will confuse bash")
+			raise SystemError("To many ticks")
+
+		command = self.shell_prefix + cmd + self.shell_suffix
+		os.system(str.strip(command))
+
