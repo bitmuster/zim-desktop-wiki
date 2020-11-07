@@ -191,6 +191,7 @@ class SourceViewBuffer(_bufferclass):
 		GtkSource.Buffer.__init__(self)
 		self.set_highlight_matching_brackets(True)
 		if attrib['lang']:
+			self.lang = attrib['lang']
 			self._set_language(attrib['lang'])
 
 		self.object_attrib = attrib
@@ -208,6 +209,7 @@ class SourceViewBuffer(_bufferclass):
 	def set_language(self, lang):
 		self.object_attrib['lang'] = lang
 		self._set_language(lang)
+		self.lang = lang
 		self.emit('changed')
 
 	def _set_language(self, lang):
@@ -215,6 +217,9 @@ class SourceViewBuffer(_bufferclass):
 			GtkSource.Buffer.set_language(self, lm.get_language(lang))
 		except:
 			logger.exception('Could not set language for sourceview: %s', lang)
+
+	def get_language(self):
+		return self.lang
 
 	def get_object_data(self):
 		start, end = self.get_bounds()
@@ -283,13 +288,36 @@ class SourceViewWidget(TextViewWidget):
 		# TODO: other toolbar options
 		# TODO: autohide toolbar if textbuffer is not active
 
-		win = ScrolledWindow(self.view, Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.NEVER, Gtk.ShadowType.NONE)
-		self.add(win)
+		self.box = Gtk.Box( orientation=Gtk.Orientation.HORIZONTAL)
+
+		self.win = ScrolledWindow(self.view, Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.NEVER, Gtk.ShadowType.NONE)
+		self.box.pack_start(self.win, True, True , 5)
+
+		self.vbox = Gtk.Box( orientation=Gtk.Orientation.VERTICAL)
+		self.box.pack_start(self.vbox, False, False , 5)
+
+		self.button = Gtk.Button()
+		self.button.set_label("Run")
+		self.vbox.pack_start(self.button, False, False , 5)
+		self.button.connect("clicked", self.clicked_on_run)
+
+		self.label = Gtk.Label()
+		self.label.set_label("Success")
+		self.vbox.pack_start(self.label, False, False , 5)
+
+		self.add(self.box)
 
 		self.view.connect('populate-popup', self.on_populate_popup)
 
-	def set_preferences(self, preferences):
 
+	def clicked_on_run(self, button):
+		logging.debug('Run this man in ' + self.buffer.get_language())
+		self.label.set_label('Run')
+		logging.debug(self.buffer.get_text(self.buffer.get_start_iter(),
+			self.buffer.get_end_iter(), False))
+
+
+	def set_preferences(self, preferences):
 		# set the style scheme
 		theme = preferences['theme']
 		try:
