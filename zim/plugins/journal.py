@@ -27,6 +27,7 @@ from zim.gui.widgets import ScrolledWindow, \
 
 from zim.plugins.pageindex import PageTreeStore, PageTreeView
 
+from datetime import timedelta
 
 logger = logging.getLogger('zim.plugins.journal')
 
@@ -346,7 +347,16 @@ class CalendarWidget(Gtk.VBox, WindowSidePaneWidget):
 		button.add(self.label)
 		button.set_relief(Gtk.ReliefStyle.NONE)
 		button.connect('clicked', lambda b: self.go_today())
+
+		button1 = Gtk.Button()
+		self.label_box.add(button1)
+		button1.connect('clicked', lambda b: self.sub_day())
+
 		self.label_box.add(button)
+
+		button2 = Gtk.Button()
+		self.label_box.add(button2)
+		button2.connect('clicked', lambda b: self.add_day())
 
 		self._close_button = None
 
@@ -376,6 +386,18 @@ class CalendarWidget(Gtk.VBox, WindowSidePaneWidget):
 
 	def go_today(self):
 		self.calendar.select_date(datetime.date.today())
+		self.calendar.emit('activate')
+
+	def add_day(self):
+		day = self.calendar.get_date()
+		d = timedelta(days=1)
+		self.calendar.select_date(day+d)
+		self.calendar.emit('activate')
+
+	def sub_day(self):
+		day = self.calendar.get_date()
+		d = timedelta(days=-1)
+		self.calendar.select_date(day+d)
 		self.calendar.emit('activate')
 
 	def set_embeded_closebutton(self, button):
