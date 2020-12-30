@@ -348,15 +348,20 @@ class CalendarWidget(Gtk.VBox, WindowSidePaneWidget):
 		button.set_relief(Gtk.ReliefStyle.NONE)
 		button.connect('clicked', lambda b: self.go_today())
 
-		button1 = Gtk.Button()
-		self.label_box.add(button1)
-		button1.connect('clicked', lambda b: self.sub_day())
+		button_substract = Gtk.Button()
+		button_substract.set_label('<')
+		button_substract.set_relief(Gtk.ReliefStyle.NONE)
+		button_substract.connect('clicked', lambda b: self.substract_day())
 
+		button_add = Gtk.Button()
+		button_add.set_label('>')
+		button_add.set_relief(Gtk.ReliefStyle.NONE)
+		button_add.connect('clicked', lambda b: self.add_day())
+
+		self.label_box.add(button_substract)
 		self.label_box.add(button)
+		self.label_box.add(button_add)
 
-		button2 = Gtk.Button()
-		self.label_box.add(button2)
-		button2.connect('clicked', lambda b: self.add_day())
 
 		self._close_button = None
 
@@ -394,7 +399,7 @@ class CalendarWidget(Gtk.VBox, WindowSidePaneWidget):
 		self.calendar.select_date(day+d)
 		self.calendar.emit('activate')
 
-	def sub_day(self):
+	def substract_day(self):
 		day = self.calendar.get_date()
 		d = timedelta(days=-1)
 		self.calendar.select_date(day+d)
