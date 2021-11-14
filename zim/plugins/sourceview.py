@@ -5,6 +5,7 @@
 
 import logging
 import os
+import subprocess
 
 logger = logging.getLogger('zim.plugins.sourceview')
 
@@ -303,7 +304,8 @@ class SourceViewWidget(TextViewWidget):
 		self.button.connect("clicked", self.clicked_on_run)
 
 		self.label = Gtk.Label()
-		self.label.set_label("Success")
+		#self.label.set_label("Success")
+		self.label.set_label(self.buffer.get_language())
 		self.vbox.pack_start(self.label, False, False , 5)
 
 		self.add(self.box)
@@ -314,7 +316,7 @@ class SourceViewWidget(TextViewWidget):
 	def clicked_on_run(self, button):
 		lang = self.buffer.get_language()
 		logging.debug('Run this man in ' + lang)
-		self.label.set_label('Run')
+		#self.label.set_label('Run')
 		command = self.buffer.get_text(self.buffer.get_start_iter(),
 			self.buffer.get_end_iter(), False)
 		logging.debug(command)
@@ -473,19 +475,14 @@ class Interpreter:
 	# More configuration of execution control
 	# Log to Logfiles
 
+	# To see the messages / errors : ./zim.py --standalone -D -V
+
 	def __init__(self, lang):
 		assert lang == 'sh'
 		#shell == 'mate-terminal':
-		self.shell_prefix = \
-		"""mate-terminal --hide-menubar -x /bin/bash -c '"""
-		self.shell_suffix = \
-		""";echo "Press the Any-Key to Continue "; read; echo "Extra sleep 5s"; sleep 5' &"""
 
 	def run(self, cmd):
-		if cmd.count("'") > 0:
-			logging.error("Error the command String contains a ' character, this will confuse bash")
-			raise SystemError("To many ticks")
+		cmd +=  ';echo "Press the Any-Key to Continue "; read x;'
+		subprocess.run(['mate-terminal','--hide-menubar', '-x', '/bin/bash', '-c', cmd])
 
-		command = self.shell_prefix + cmd + self.shell_suffix
-		os.system(str.strip(command))
 
