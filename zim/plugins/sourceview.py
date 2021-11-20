@@ -6,6 +6,7 @@
 import logging
 import os
 import subprocess
+import threading
 
 logger = logging.getLogger('zim.plugins.sourceview')
 
@@ -320,8 +321,8 @@ class SourceViewWidget(TextViewWidget):
 		command = self.buffer.get_text(self.buffer.get_start_iter(),
 			self.buffer.get_end_iter(), False)
 		logging.debug(command)
-		ip = Interpreter(lang)
-		ip.run(command)
+		ip = Interpreter(lang, command)
+		ip.start()
 
 
 	def set_preferences(self, preferences):
@@ -468,7 +469,8 @@ class InsertCodeBlockDialog(Dialog):
 		else:
 			return False # no syntax selected
 
-class Interpreter:
+
+class Interpreter(threading.Thread):
 	# TO-DOs:
 	# Only for bash / sh
 	# Also fields that end with emtpy lines
@@ -477,12 +479,14 @@ class Interpreter:
 
 	# To see the messages / errors : ./zim.py --standalone -D -V
 
-	def __init__(self, lang):
+	def __init__(self, lang, command):
 		assert lang == 'sh'
 		#shell == 'mate-terminal':
+		threading.Thread.__init__(self)
+		self.command = command
 
-	def run(self, cmd):
-		cmd +=  ';echo "Press the Any-Key to Continue "; read x;'
+	def run(self):
+		cmd = self.command + ';echo "Press the Any-Key to Continue "; read x;'
 		subprocess.run(['mate-terminal','--hide-menubar', '-x', '/bin/bash', '-c', cmd])
 
 
