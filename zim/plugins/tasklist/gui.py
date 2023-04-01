@@ -758,13 +758,16 @@ class LabelAndTagView(Gtk.ListBox):
 				row.set_header(None)
 
 
+VERY_HIGH_COLOR2 = '#AF60EF'
 VERY_HIGH_COLOR = '#FF00FF'
 HIGH_COLOR = '#EF5151' # red (derived from Tango style guide - #EF2929)
 MEDIUM_COLOR = '#FCB956' # orange ("idem" - #FCAF3E)
 ALERT_COLOR = '#FCEB65' # yellow ("idem" - #FCE94F)
 # FIXME: should these be configurable ?
 
-COLORS = [None, ALERT_COLOR, MEDIUM_COLOR, HIGH_COLOR] # index 0..3
+COLORS = [None, ALERT_COLOR, MEDIUM_COLOR, HIGH_COLOR, VERY_HIGH_COLOR, VERY_HIGH_COLOR2] # index 0..4
+
+MAXPRIO = 5
 
 _cal_days_to_work_days = [
 	# for each weekday 5 offsets used in algo below
@@ -865,7 +868,7 @@ class TaskListTreeView(BrowserTreeView):
 				bg = None
 			else:
 				prio = model.get_value(i, PRIO_COL)
-				bg = COLORS[min(prio, 4)]
+				bg = COLORS[min(prio, MAXPRIO)]
 			cell.set_property('markup', text)
 			cell.set_property('cell-background', bg)
 
@@ -1040,7 +1043,7 @@ class TaskListTreeView(BrowserTreeView):
 				td = datetime.date(int(y), int(m), int(d)) - today
 				prio_sort_label = '>' + days_to_str(td.days, self.use_workweek, weekday)
 				if row['prio'] > 0:
-					prio_sort_label += ' ' + '!' * min(row['prio'], 3)
+					prio_sort_label += ' ' + '!' * min(row['prio'], MAXPRIO)
 			elif row['due'] < _MAX_DUE_DATE:
 				y, m, d = row['due'].split('-')
 				td = datetime.date(int(y), int(m), int(d)) - today
@@ -1053,7 +1056,7 @@ class TaskListTreeView(BrowserTreeView):
 				else:
 						prio_sort_label += days_to_str(td.days, self.use_workweek, weekday)
 			else:
-				prio_sort_label = '!' * min(row['prio'], 4)
+				prio_sort_label = '!' * min(row['prio'], MAXPRIO)
 
 			# Format description
 			desc = _date_re.sub('', row['description'])
